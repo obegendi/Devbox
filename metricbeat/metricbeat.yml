@@ -17,29 +17,6 @@ metricbeat.modules:
   enabled: true
   period: 5s
 
-- module: prometheus
-  metricsets: ["stats"]
-  enabled: true
-  period: 10s
-  hosts: ["${HOST_PROMETHEUS}"]
-  #metrics_path: /metrics
-  #namespace: example
-
-- module: prometheus
-  metricsets: ["collector"]
-  enabled: true
-  period: 10s
-  hosts: ["${HOST_PROMETHEUS}"]
-  #metrics_path: /metrics
-  #namespace: example
-
-- module: logstash
-  metricsets: ["node", "node_stats"]
-  enabled: true
-  period: 10s
-  hosts: ["{HOST_LOGSTASH}"]
-
-
 #------------------------------- RabbitMQ Module -------------------------------
 # - module: rabbitmq
 #   enabled: true
@@ -84,7 +61,7 @@ metricbeat.modules:
 - module: kafka
   metricsets: ["consumergroup", "partition"]
   period: 10s
-  hosts: ["${HOST_KAFKA}"]
+  hosts: ["kafka:9092"]
   enabled: true
 
 #------------------------------- Nginx Module -------------------------------
