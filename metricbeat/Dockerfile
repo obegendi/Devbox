@@ -1,4 +1,6 @@
-FROM docker.elastic.co/beats/metricbeat:6.4.2
+ARG ELK_VERSION
+
+FROM docker.elastic.co/beats/metricbeat:${ELK_VERSION}
 
 # The file to monitor the host is different from the file to monitor docker services.ADD
 # So we pass the filename at build time to choose the target (host or services) of the image built.
