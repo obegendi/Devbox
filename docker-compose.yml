@@ -15,7 +15,7 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - devbox
 
   logstash:
     build:
@@ -30,7 +30,7 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - devbox
     depends_on:
       - elasticsearch
 
@@ -44,7 +44,7 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - elk
+      - devbox
     depends_on:
       - elasticsearch
 
@@ -53,98 +53,22 @@ services:
     ports:
       - "6379:6379"
     networks:      
-      - elk
-  
-    # Container to monitor services running inside other containers
-  metricbeat:
-    build:
-      context: metricbeat/
-      args:
-        ELK_VERSION: $ELK_VERSION
-    restart: unless-stopped
-    container_name: metricbeat-metricbeat-services
-    command: -e
+      - devbox
+
+  rabbitmq:
+    image: "rabbitmq:3-management"    
     environment:
-      - "WAIT_FOR_HOSTS=elasticsearch:9200 kibana:5601"
-      - "HOST_ELASTICSEARCH=elasticsearch:9200"
-      - "HOST_KIBANA=kibana:5601"
-    depends_on:
-      - elasticsearch
-      - logstash
-      - kibana
-    networks:
-      - elk
-
-  kafka:
-    image: spotify/kafka
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
     ports:
-      - "2181:2181"
-      - "9092:9092"
-    networks:
-      - elk
-
-  kafka-jmx-exporter:
-    build: ./prometheus-jmx-exporter
-    ports:
-      - "8080:8080"
-    # links:
-    #   - kafka
-    environment:
-      - JMX_PORT=9999
-      - JMX_HOST=kafka
-      - HTTP_PORT=8080
-      - JMX_EXPORTER_CONFIG_FILE=kafka.yml
-    networks:
-      - elk
-
-  prometheus:
-    image: prom/prometheus
-    volumes:
-      - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - 9091:9090
-    restart: unless-stopped
-    deploy:
-      placement:
-        constraints:
-          - node.role==manager
-    networks:
-      - elk
-
-  grafana:
-    image: grafana/grafana:3.0.1
-    depends_on:
-      - prometheus
-    ports:
-      - 3001:3000/tcp
-    links:
-      - prometheus
-    volumes:
-      - "graf-db:/var/lib/grafana"
-    restart: unless-stopped
-    networks:
-      - elk
-
-  graf-db:
-    command:
-      - cat
-    image: infinityworks/graf-db:08
-    links:
-      - prometheus
-    volumes:
-      - "graf-db:/var/lib/grafana/"
-    networks:
-      - elk
+      - "15672:15672"
+      - "5672:5672"
+    networks:      
+      - devbox
 
 networks:
-  elk:
+  devbox:
     driver: bridge
-volumes:
-    prometheus_data: {}
-    graf-db:
+

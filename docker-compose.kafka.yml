@@ -1,0 +1,72 @@
+
+
+  kafka:
+    image: spotify/kafka
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+    networks:
+      - elk
+
+  kafka-jmx-exporter:
+    build: ./prometheus-jmx-exporter
+    ports:
+      - "8080:8080"
+    # links:
+    #   - kafka
+    environment:
+      - JMX_PORT=9999
+      - JMX_HOST=kafka
+      - HTTP_PORT=8080
+      - JMX_EXPORTER_CONFIG_FILE=kafka.yml
+    networks:
+      - elk
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9091:9090
+    restart: unless-stopped
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+    networks:
+      - elk
+
+  grafana:
+    image: grafana/grafana:3.0.1
+    depends_on:
+      - prometheus
+    ports:
+      - 3001:3000/tcp
+    links:
+      - prometheus
+    volumes:
+      - "graf-db:/var/lib/grafana"
+    restart: unless-stopped
+    networks:
+      - elk
+
+  graf-db:
+    command:
+      - cat
+    image: infinityworks/graf-db:08
+    links:
+      - prometheus
+    volumes:
+      - "graf-db:/var/lib/grafana/"
+    networks:
+      - elk
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
