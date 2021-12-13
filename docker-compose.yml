@@ -13,7 +13,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m -Dlog4j2.formatMsgNoLookups=true"
     networks:
       - devbox
 
@@ -28,7 +28,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dlog4j2.formatMsgNoLookups=true"
     networks:
       - devbox
     depends_on:
